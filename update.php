@@ -26,14 +26,16 @@ $location = $jsonBody['location'];
 $person = $jsonBody['person'];
 $status = $jsonBody['status'];
 
-if (!is_file("control-files/$location.txt")) {
+if (!is_file("control-files/$location.txt")) 
+{
 	touch("control-files/$location.txt");
 }
 
 $location_triggers_enabled = true;
 
 $all_people = explode(',', file_get_contents('control-files/people.txt'));
-if (!in_array($person, $all_people)) {
+if (!in_array($person, $all_people)) 
+{
     throw new Exception("Person {$person} not found");
 }
 
@@ -56,14 +58,23 @@ else if ($status == 'departed' && in_array($person, $location_people))
 include_once('../nature/get_sunrise_sunset_times.php');
 
 // First Person To Arrive Home
-if ($location_triggers_enabled && $location == 'home' && $status == 'arrived' && $first_person_arrived) {
-    if ($day_night == 'day') {
+if ($location_triggers_enabled && $location == 'home' && $status == 'arrived' && $first_person_arrived) 
+{
+    if ($day_night == 'day') 
+    {
         turnOnUpstairsSpeakers();
+    }
+
+    if ($day_night == 'night') 
+    {
+        turnOnTrayLight();
     }
 }
 
 // Last Person To Depart Home
-if ($location_triggers_enabled && $location == 'home' && $status == 'departed' && $location_people == array()) {
+if ($location_triggers_enabled && $location == 'home' && $status == 'departed' && $location_people == array()) 
+{
+    turnOffTrayLight();
     turnOffAllSpeakers();
 }
 
@@ -89,6 +100,32 @@ function turnOnUpstairsSpeakers()
             array('name'=>'Master Bedroom'),
             array('name'=>'Office')
         )
+    );
+    $postJSON = json_encode($postData);
+    echo $postJSON;
+    postJSONRequest($url, $postJSON);
+}
+
+function turnOnTrayLight()
+{
+    $url = 'https://lounsbrough.ddns.net/smartthings';
+    $postData = array(
+        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
+        'deviceName'=>'Tray Light',
+        'action'=>'turnLightOn'
+    );
+    $postJSON = json_encode($postData);
+    echo $postJSON;
+    postJSONRequest($url, $postJSON);
+}
+
+function turnOffTrayLight()
+{
+    $url = 'https://lounsbrough.ddns.net/smartthings';
+    $postData = array(
+        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
+        'deviceName'=>'Tray Light',
+        'action'=>'turnLightOff'
     );
     $postJSON = json_encode($postData);
     echo $postJSON;
