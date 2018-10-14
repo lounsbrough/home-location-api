@@ -1,148 +1,75 @@
 <?php
-if (strcasecmp(filter_input(INPUT_SERVER, 'REQUEST_METHOD'), 'POST') != 0)
+require_once dirname(__FILE__).'/classes/authentication.php';
+$authentication = new Authentication();
+
+require_once dirname(__FILE__).'/classes/request-parser.php';
+$requestParser = new RequestParser();
+
+$jsonBody = $authentication->getRequestJSON(file_get_contents('php://input'));
+$authentication->authenticateRequest($jsonBody);
+
+$requestParser->requestBody = $jsonBody;
+$requestParser->parseRequest();
+
+require_once dirname(__FILE__).'/classes/nature.php';
+$nature = new Nature();
+
+require_once dirname(__FILE__).'/classes/htd.php';
+$htd = new HTD();
+
+require_once dirname(__FILE__).'/classes/smartthings.php';
+$smartThings = new SmartThings();
+
+if (!is_file("control-files/$requestParser->location.txt")) 
 {
-    throw new Exception('Request method must be POST');
+	touch("control-files/$requestParser->location.txt");
 }
 
-$contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE') !== null ? trim(filter_input(INPUT_SERVER, 'CONTENT_TYPE')) : '';
-if (strcasecmp($contentType, 'application/json') != 0)
+$locationTriggersEnabled = true;
+$firstPersonArrived = false;
+$lastPersonDeparted = false;
+
+$allPeople = explode(',', file_get_contents('control-files/people.txt'));
+if (!in_array($requestParser->person, $allPeople)) 
 {
-    throw new Exception('Content type must be: application/json');
+    throw new Exception("Person {$requestParser->person} not found");
 }
 
-$jsonBody = json_decode(file_get_contents('php://input'), true);
-
-if (!is_array($jsonBody))
-{
-    throw new Exception('Received content contained invalid JSON');
-}
-
-if ($jsonBody['authCode'] != getenv('HTTPS_AUTHENTICATION_SECRET')) 
-{
-    throw new Exception('Auth Code is invalid');
-}
-
-$location = $jsonBody['location'];
-$person = $jsonBody['person'];
-$status = $jsonBody['status'];
-
-if (!is_file("control-files/$location.txt")) 
-{
-	touch("control-files/$location.txt");
-}
-
-$location_triggers_enabled = true;
-
-$all_people = explode(',', file_get_contents('control-files/people.txt'));
-if (!in_array($person, $all_people)) 
-{
-    throw new Exception("Person {$person} not found");
-}
-
-$location_people = trim(file_get_contents("control-files/$location.txt")) != '' ? explode(',', file_get_contents("control-files/$location.txt")) : array();
-
-$first_person_arrived = $location_people == array() ? true : false;
+$locationPeople = trim(file_get_contents("control-files/$requestParser->location.txt")) != '' ? explode(',', file_get_contents("control-files/$requestParser->location.txt")) : array();
 
 // Update Person List For Location
-if ($status == 'arrived' && !in_array($person, $location_people))
+if ($requestParser->status == 'arrived' && !in_array($requestParser->person, $locationPeople))
 {
-    $location_people[] = $person;
-    file_put_contents("control-files/$location.txt", implode(',', $location_people));
+    if (empty($locationPeople)) $firstPersonArrived = true;
+
+    $locationPeople[] = $requestParser->person;
+    file_put_contents("control-files/$requestParser->location.txt", implode(',', $locationPeople));
 }
-else if ($status == 'departed' && in_array($person, $location_people))
+else if ($requestParser->status == 'departed' && in_array($requestParser->person, $locationPeople))
 {
-    unset($location_people[array_search($person, $location_people, true)]);
-    file_put_contents("control-files/$location.txt", implode(',', $location_people));
+    unset($locationPeople[array_search($requestParser->person, $locationPeople, true)]);
+    file_put_contents("control-files/$requestParser->location.txt", implode(',', $locationPeople));
+
+    if (empty($locationPeople)) $lastPersonDeparted = true;
 }
 
-include_once('../nature/get_sunrise_sunset_times.php');
-
-// First Person To Arrive Home
-if ($location_triggers_enabled && $location == 'home' && $status == 'arrived' && $first_person_arrived) 
+if ($locationTriggersEnabled && $requestParser->location == 'home' && $firstPersonArrived) 
 {
-    if ($day_night == 'day') 
+    $dayOrNight = $nature->dayOrNight();
+    if ($dayOrNight == 'day') 
     {
-        turnOnUpstairsSpeakers();
+        $htd->turnOnUpstairsSpeakers();
     }
 
-    if ($day_night == 'night') 
+    if ($dayOrNight == 'night')
     {
-        turnOnTrayLight();
+        $smartThings->turnOnTrayLight();
     }
 }
 
-// Last Person To Depart Home
-if ($location_triggers_enabled && $location == 'home' && $status == 'departed' && $location_people == array()) 
+if ($locationTriggersEnabled && $requestParser->location == 'home' && $lastPersonDeparted)
 {
-    turnOffTrayLight();
-    turnOffAllSpeakers();
-}
-
-function turnOffAllSpeakers() 
-{
-    $url = 'https://lounsbrough.ddns.net/htd/api/control.php';
-    $postData = array(
-        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-        'command'=>'powerOff'
-    );
-    $postJSON = json_encode($postData);
-    postJSONRequest($url, $postJSON);
-}
-
-function turnOnUpstairsSpeakers()
-{
-    $url = 'https://lounsbrough.ddns.net/htd/api/control.php';
-    $postData = array(
-        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-        'command'=>'powerOn',
-        'zones'=>array(
-            array('name'=>'Great Room'),
-            array('name'=>'Master Bedroom'),
-            array('name'=>'Office')
-        )
-    );
-    $postJSON = json_encode($postData);
-    echo $postJSON;
-    postJSONRequest($url, $postJSON);
-}
-
-function turnOnTrayLight()
-{
-    $url = 'https://lounsbrough.ddns.net/smartthings';
-    $postData = array(
-        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-        'deviceName'=>'Tray Light',
-        'action'=>'turnLightOn'
-    );
-    $postJSON = json_encode($postData);
-    echo $postJSON;
-    postJSONRequest($url, $postJSON);
-}
-
-function turnOffTrayLight()
-{
-    $url = 'https://lounsbrough.ddns.net/smartthings';
-    $postData = array(
-        'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-        'deviceName'=>'Tray Light',
-        'action'=>'turnLightOff'
-    );
-    $postJSON = json_encode($postData);
-    echo $postJSON;
-    postJSONRequest($url, $postJSON);
-}
-
-function postJSONRequest($url, $json)
-{
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($json))
-    );
-
-    return curl_exec($ch);
+    $smartThings->turnOffTrayLight();
+    $htd->turnOffAllSpeakers();
 }
 ?>
