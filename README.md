@@ -4,9 +4,9 @@ Simple way to maintain a status of which household members are present at a give
 Sample Request JSON:
 ```json
 {
-	"authCode":"********",
-	"location": "home",
-	"person": "john",
-	"status": "arrived"
+    "authCode":"********",
+    "location": "home",
+    "person": "john",
+    "status": "arrived"
 }
 ```
