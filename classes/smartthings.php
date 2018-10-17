@@ -9,7 +9,7 @@ class SmartThings
 
     public function turnOnTrayLight()
     {
-        $url = 'https://lounsbrough.ddns.net/smartthings';
+        $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/smartthings';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
             'deviceName'=>'Tray Light',
@@ -21,7 +21,7 @@ class SmartThings
 
     public function turnOffTrayLight()
     {
-        $url = 'https://lounsbrough.ddns.net/smartthings';
+        $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/smartthings';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
             'deviceName'=>'Tray Light',

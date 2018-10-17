@@ -9,7 +9,7 @@ class Nature
 
     public function dayOrNight()
     {
-        $url = 'https://lounsbrough.ddns.net/nature/sunrise-sunset/api.php';
+        $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/nature/sunrise-sunset/api.php';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET')
         );
