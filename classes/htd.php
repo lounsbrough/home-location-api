@@ -9,7 +9,7 @@ class HTD
 
     public function turnOffAllSpeakers() 
     {
-        $url = 'https://lounsbrough.ddns.net/htd/api/control.php';
+        $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/htd/api/control.php';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
             'command'=>'powerOff'
@@ -20,7 +20,7 @@ class HTD
     
     public function turnOnUpstairsSpeakers()
     {
-        $url = 'https://lounsbrough.ddns.net/htd/api/control.php';
+        $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/htd/api/control.php';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
             'command'=>'powerOn',
