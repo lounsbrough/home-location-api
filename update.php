@@ -56,11 +56,6 @@ else if ($requestParser->status == 'departed' && in_array($requestParser->person
 if ($locationTriggersEnabled && $requestParser->location == 'home' && $firstPersonArrived) 
 {
     $dayOrNight = $nature->dayOrNight();
-    if ($dayOrNight == 'day') 
-    {
-        $htd->turnOnUpstairsSpeakers();
-    }
-
     if ($dayOrNight == 'night')
     {
         $smartThings->turnOnTrayLight();
