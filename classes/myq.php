@@ -7,24 +7,24 @@ class MyQ
         $this->utilities = new Utilities();
     }
 
-    public function closeMainGarageDoor()
+    public function closeGarageDoor($doorName)
     {
         $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/myq';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-            'door'=>'Main Door',
+            'door'=>$doorName,
             'action'=>'close'
         );
         $postJSON = json_encode($postData);
         $this->utilities->postJSONRequest($url, $postJSON);
     }
 
-    public function openMainGarageDoor()
+    public function openGarageDoor($doorName)
     {
         $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/myq';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-            'door'=>'Main Door',
+            'door'=>$doorName,
             'action'=>'open'
         );
         $postJSON = json_encode($postData);

@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL);
 require_once dirname(__FILE__).'/classes/authentication.php';
 $authentication = new Authentication();
 
@@ -63,15 +62,15 @@ if ($locationTriggersEnabled)
         $dayOrNight = $nature->dayOrNight();
         if ($dayOrNight == 'night')
         {
-            $smartThings->turnOnTrayLight();
+            $smartThings->turnLightOn('Tray Light');
         }
     }
 
     if ($requestParser->location == 'home' && $lastPersonDeparted)
     {
-        $smartThings->turnOffTrayLight();
+        $smartThings->turnLightOff('Tray Light');
         $htd->turnOffAllSpeakers();
-        $myQ->closeMainGarageDoor();
+        $myQ->closeGarageDoor('Main Door');
     }
 }
 ?>
