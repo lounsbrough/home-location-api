@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL);
 require_once dirname(__FILE__).'/classes/authentication.php';
 $authentication = new Authentication();
 
@@ -16,6 +17,9 @@ $nature = new Nature();
 
 require_once dirname(__FILE__).'/classes/htd.php';
 $htd = new HTD();
+
+require_once dirname(__FILE__).'/classes/myq.php';
+$myQ = new MyQ();
 
 require_once dirname(__FILE__).'/classes/smartthings.php';
 $smartThings = new SmartThings();
@@ -37,7 +41,6 @@ if (!in_array($requestParser->person, $allPeople))
 
 $locationPeople = trim(file_get_contents("control-files/$requestParser->location.txt")) != '' ? explode(',', file_get_contents("control-files/$requestParser->location.txt")) : array();
 
-// Update Person List For Location
 if ($requestParser->status == 'arrived' && !in_array($requestParser->person, $locationPeople))
 {
     if (empty($locationPeople)) $firstPersonArrived = true;
@@ -53,18 +56,22 @@ else if ($requestParser->status == 'departed' && in_array($requestParser->person
     if (empty($locationPeople)) $lastPersonDeparted = true;
 }
 
-if ($locationTriggersEnabled && $requestParser->location == 'home' && $firstPersonArrived) 
+if ($locationTriggersEnabled)
 {
-    $dayOrNight = $nature->dayOrNight();
-    if ($dayOrNight == 'night')
+    if ($requestParser->location == 'home' && $firstPersonArrived) 
     {
-        $smartThings->turnOnTrayLight();
+        $dayOrNight = $nature->dayOrNight();
+        if ($dayOrNight == 'night')
+        {
+            $smartThings->turnOnTrayLight();
+        }
     }
-}
 
-if ($locationTriggersEnabled && $requestParser->location == 'home' && $lastPersonDeparted)
-{
-    $smartThings->turnOffTrayLight();
-    $htd->turnOffAllSpeakers();
+    if ($requestParser->location == 'home' && $lastPersonDeparted)
+    {
+        $smartThings->turnOffTrayLight();
+        $htd->turnOffAllSpeakers();
+        $myQ->closeMainGarageDoor();
+    }
 }
 ?>
