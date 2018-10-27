@@ -33,7 +33,7 @@ $firstPersonArrived = false;
 $lastPersonDeparted = false;
 
 $allPeople = explode(',', file_get_contents('control-files/people.txt'));
-if (!in_array(strtolower($requestParser->person), $allPeople)) 
+if (!in_array($requestParser->person, $allPeople)) 
 {
     throw new Exception("Person {$requestParser->person} not found");
 }
