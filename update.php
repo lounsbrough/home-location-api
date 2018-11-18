@@ -23,34 +23,34 @@ $myQ = new MyQ();
 require_once dirname(__FILE__).'/classes/smartthings.php';
 $smartThings = new SmartThings();
 
-if (!is_file("control-files/$requestParser->location.txt")) 
+if (!is_file("control-files/$requestParser->location.json")) 
 {
-	touch("control-files/$requestParser->location.txt");
+	touch("control-files/$requestParser->location.json");
 }
 
 $locationTriggersEnabled = true;
 $firstPersonArrived = false;
 $lastPersonDeparted = false;
 
-$allPeople = explode(',', file_get_contents('control-files/people.txt'));
+$allPeople = json_decode(file_get_contents('control-files/people.json'));
 if (!in_array($requestParser->person, $allPeople)) 
 {
     throw new Exception("Person {$requestParser->person} not found");
 }
 
-$locationPeople = trim(file_get_contents("control-files/$requestParser->location.txt")) != '' ? explode(',', file_get_contents("control-files/$requestParser->location.txt")) : array();
+$locationPeople = json_decode(file_get_contents("control-files/$requestParser->location.json"));
 
 if ($requestParser->status == 'arrived' && !in_array($requestParser->person, $locationPeople))
 {
     if (empty($locationPeople)) $firstPersonArrived = true;
 
     $locationPeople[] = $requestParser->person;
-    file_put_contents("control-files/$requestParser->location.txt", implode(',', $locationPeople));
+    file_put_contents("control-files/$requestParser->location.json", json_encode($locationPeople));
 }
 else if ($requestParser->status == 'departed' && in_array($requestParser->person, $locationPeople))
 {
     unset($locationPeople[array_search($requestParser->person, $locationPeople, true)]);
-    file_put_contents("control-files/$requestParser->location.txt", implode(',', $locationPeople));
+    file_put_contents("control-files/$requestParser->location.json", json_encode($locationPeople));
 
     if (empty($locationPeople)) $lastPersonDeparted = true;
 }
