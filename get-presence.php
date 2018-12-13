@@ -9,7 +9,7 @@ $directory = new DirectoryIterator(dirname(__FILE__).'/control-files');
 foreach ($directory as $fileinfo) {
     if (!$fileinfo->isDot()) {
         $file = $fileinfo->getBasename('.json');
-        $people[$file] = json_decode(file_get_contents("control-files/$file.json"));
+        $people[$file] = json_decode(file_get_contents("control-files/$file.json"), true);
     }
 }
 

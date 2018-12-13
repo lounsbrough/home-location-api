@@ -32,13 +32,13 @@ $locationTriggersEnabled = true;
 $firstPersonArrived = false;
 $lastPersonDeparted = false;
 
-$allPeople = json_decode(file_get_contents('control-files/people.json'));
+$allPeople = json_decode(file_get_contents('control-files/people.json'), true);
 if (!in_array($requestParser->person, $allPeople)) 
 {
     throw new Exception("Person {$requestParser->person} not found");
 }
 
-$locationPeople = json_decode(file_get_contents("control-files/$requestParser->location.json"));
+$locationPeople = json_decode(file_get_contents("control-files/$requestParser->location.json"), true);
 
 if ($requestParser->status == 'arrived' && !in_array($requestParser->person, $locationPeople))
 {
