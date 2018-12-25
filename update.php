@@ -63,7 +63,7 @@ else if ($requestParser->status == 'departed' && in_array($requestParser->person
 
 if ($locationTriggersEnabled)
 {
-    if ($requestParser->location == 'home') {
+    if ($requestParser->location == 'home' && $requestParser->status == 'arrived') {
         $currentTemperature = $nest->getTemperature();
         $currentHumidity = $nest->getHumidity();
         if ($currentHumidity < 35 || $currentHumidity > 50) {
