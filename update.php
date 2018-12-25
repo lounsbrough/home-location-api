@@ -23,6 +23,12 @@ $myQ = new MyQ();
 require_once dirname(__FILE__).'/classes/smartthings.php';
 $smartThings = new SmartThings();
 
+require_once dirname(__FILE__).'/classes/nest.php';
+$nest = new Nest();
+
+require_once dirname(__FILE__).'/classes/pushbullet.php';
+$pushbullet = new Pushbullet();
+
 if (!is_file("control-files/$requestParser->location.json")) 
 {
 	touch("control-files/$requestParser->location.json");
@@ -57,7 +63,17 @@ else if ($requestParser->status == 'departed' && in_array($requestParser->person
 
 if ($locationTriggersEnabled)
 {
-    if ($requestParser->location == 'home' && $firstPersonArrived) 
+    if ($requestParser->location == 'home') {
+        $currentTemperature = $nest->getTemperature();
+        $currentHumidity = $nest->getHumidity();
+        if ($currentHumidity < 35 || $currentHumidity > 50) {
+            $deviceName = ucwords(strtolower($requestParser->person))." - Phone";
+            $noteBody = "Temperature: ".round($currentTemperature, 1)."° Humidity: $currentHumidity%";
+            $pushbullet->pushNote($deviceName, "Humidity Alert", $noteBody);
+        }
+    }
+
+    if ($requestParser->location == 'home' && $firstPersonArrived)
     {
         $dayOrNight = $nature->dayOrNight();
         if ($dayOrNight == 'night')
