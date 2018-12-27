@@ -78,13 +78,13 @@ if ($locationTriggersEnabled)
         $dayOrNight = $nature->dayOrNight();
         if ($dayOrNight == 'night')
         {
-            $smartThings->turnLightOn('Tray Light');
+            $smartThings->setSwitchPowerState('Master Tray Lights', true);
         }
     }
 
     if ($requestParser->location == 'home' && $lastPersonDeparted)
     {
-        $smartThings->turnLightOff('Tray Light');
+        $smartThings->setAllSwitchesPowerState(false);
         $htd->turnOffAllSpeakers();
         $myQ->closeGarageDoor('Main Door');
     }

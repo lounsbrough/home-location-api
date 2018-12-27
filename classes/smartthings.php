@@ -7,25 +7,24 @@ class SmartThings
         $this->utilities = new Utilities();
     }
 
-    public function turnLightOn($deviceName)
+    public function setSwitchPowerState($deviceName, $power)
     {
         $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/smartthings';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
             'deviceName'=>$deviceName,
-            'action'=>'turnLightOn'
+            'action'=>'turnSwitch' . ($power ? 'On' : 'Off')
         );
         $postJSON = json_encode($postData);
         $this->utilities->postJSONRequest($url, $postJSON);
     }
 
-    public function turnLightOff($deviceName)
+    public function setAllSwitchesPowerState($power)
     {
         $url = 'https://'.getenv('PUBLIC_SERVER_DNS').'/smartthings';
         $postData = array(
             'authCode'=>getenv('HTTPS_AUTHENTICATION_SECRET'),
-            'deviceName'=>$deviceName,
-            'action'=>'turnLightOff'
+            'action'=>'turnAllSwitches' . ($power ? 'On' : 'Off')
         );
         $postJSON = json_encode($postData);
         $this->utilities->postJSONRequest($url, $postJSON);
