@@ -78,7 +78,7 @@ if ($locationTriggersEnabled)
         $dayOrNight = $nature->dayOrNight();
         if ($dayOrNight == 'night')
         {
-            $smartThings->setSwitchPowerState('Master Tray Light', true);
+            $smartThings->setSwitchPowerState('Kitchen Main Light', true);
         }
     }
 
