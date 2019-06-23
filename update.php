@@ -84,7 +84,7 @@ if ($locationTriggersEnabled)
 
     if ($requestParser->location == 'home' && $lastPersonDeparted)
     {
-        $smartThings->setAllSwitchesPowerState(false);
+        $smartThings->setAllSwitchesPowerState(false, array('Master Main Light'));
         $htd->turnOffAllSpeakers();
         $myQ->closeGarageDoor('Main Door');
     }
