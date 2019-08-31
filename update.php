@@ -66,7 +66,8 @@ if ($locationTriggersEnabled)
     if ($requestParser->location == 'home' && $requestParser->status == 'arrived') {
         $currentTemperature = $nest->getTemperature();
         $currentHumidity = $nest->getHumidity();
-        if ($currentHumidity < 35 || $currentHumidity > 60) {
+
+        if ($currentHumidity != '' && ($currentHumidity < 35 || $currentHumidity > 60)) {
             $deviceName = ucwords(strtolower($requestParser->person))." - Phone";
             $noteBody = "Temperature: ".round($currentTemperature, 1)."° Humidity: $currentHumidity%";
             $pushbullet->pushNote($deviceName, "Humidity Alert", $noteBody);
